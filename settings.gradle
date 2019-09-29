@@ -1,0 +1,5 @@
+new File("${rootDir}").eachDir{ 
+	if(new File(it, 'build.xml').exists()) {
+		include it.getName()
+	} 
+}

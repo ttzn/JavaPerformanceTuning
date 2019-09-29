@@ -1,0 +1,25 @@
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/java']
+		}
+	}
+}
+
+task buildC(type:Exec) {
+    if (!project.hasProperty('java_home'))
+        throw new GradleException('Cannot build JNI library, missing gradle property "java_home"')
+	environment 'JAVA_HOME', java_home
+	commandLine 'make', 'library'
+}
+
+task cleanC {
+   	doLast {
+	    exec {
+		    commandLine 'rm', '-rf', 'bin'
+	    }
+	    exec {
+			commandLine 'rm', '-rf', 'lib'
+	    }
+  	}
+}

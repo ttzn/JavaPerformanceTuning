@@ -1,0 +1,72 @@
+def localDependencies = [
+    'SIZEOF': "../libs/SizeOf.jar",
+    'FABAN_DRIVER': "../libs/fabandriver.jar"
+]
+
+def externalDependencies = [
+    'JAVAX_PERSISTENCE': [group: 'javax.persistence', name: 'javax.persistence-api', version: '2.2'],
+    'JAVAX_EJB': [group: 'javax.ejb', name: 'javax.ejb-api', version: '3.2.2'],
+    'JAVAX_SERVLET': [group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'],
+    'JSON_P': [group: 'javax.json', name: 'javax.json-api', version: '1.1.4'],
+    'JAVAX_RS': [group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.0.1'],
+    'JACKSON': [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.8.11'],
+    'ECLIPSELINK_JAR': [group: 'org.eclipse.persistence', name: 'eclipselink', version: '2.6.3'],
+    'JDBC_JAR': [group: 'oracle', name: 'ojdbc6', version: '11.2.0.3'],
+]
+
+subprojects {
+	apply plugin: 'java'
+
+	repositories {
+	    mavenCentral()
+	    maven {
+	       // ojdbc6 source
+	    	url 'http://www.datanucleus.org/downloads/maven2/'
+	    }
+	}
+	
+	/* Apply all dependencies to all projects : this is very lazy 
+	   but this code is for educational purposes, not efficiency */
+	dependencies {
+        localDependencies.each { k, v ->
+            compile project.files(v)
+        }
+        externalDependencies.each { k, v ->
+            compile v
+        }
+		if (project.name != 'api') {
+			compile project(':api')
+			if (project.name != 'impl') {
+				compile project(':impl')
+			}
+		}
+	}
+	
+	/* Most subprojects use src, but some have src/java 
+	   and have their own build.gradle */
+	sourceSets {
+		main {
+			java {
+				srcDirs = ['src']
+			}
+		}
+	}
+	
+	// Emulate the setenv.csh
+	afterEvaluate {
+	    /* Set the env. properties before importing the build.xml,
+           otherwise some classpaths will be incorrect */
+        externalDependencies.each { k, v ->
+            def jarPath = project.configurations.compile.find { it.name.startsWith(v.name) }
+            ant.properties['env.' + k] = jarPath
+        }
+    	ant.importBuild('build.xml') { taskName -> 'ant-' + taskName }
+    	
+    	// Group ant tasks together
+        getTasks().matching {
+            it.name.startsWith 'ant'
+        }.each {
+            it.group = 'ant'
+        }
+	}
+}

@@ -1,0 +1,22 @@
+/.gradle/
+
+# Eclipse project file
+.settings/
+.classpath
+.project
+classes
+
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+jars/
+build/
